@@ -1,20 +1,26 @@
 import random
 import warnings
+from typing import List, Optional, Union
 
-import numpy as np
-import torch
-from torch import nn
-import gpytorch
 import botorch
-from gpytorch.priors.torch_priors import GammaPrior, UniformPrior, LogNormalPrior
-from gpytorch.means import ZeroMean
-from botorch.models.transforms.input import *
+import gpytorch
+import torch
+from botorch.exceptions.errors import BotorchTensorDimensionError
+from botorch.models.transforms.input import InputTransform
+from botorch.models.transforms.utils import expand_and_copy_tensor
+from botorch.models.utils import fantasize
 from gpytorch.constraints import GreaterThan
+from gpytorch.means import ZeroMean
+from gpytorch.priors.prior import Prior
+from gpytorch.priors.torch_priors import GammaPrior, LogNormalPrior, UniformPrior
+from torch import Tensor, nn
+from torch.distributions import Kumaraswamy
 
-from . import utils
 from ..utils import default_device, to_tensor
+from . import utils
 from .prior import Batch
 from .utils import get_batch_to_dataloader
+
 
 class Warp(gpytorch.Module):
     r"""A transform that uses learned input warping functions.
